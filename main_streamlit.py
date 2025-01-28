@@ -1,6 +1,9 @@
 import streamlit as st
 import joblib
 import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
 
 # Charger le modèle ML et le scaler pré-entraînés
 @st.cache_resource
@@ -76,19 +79,64 @@ if submitted:
         else:
             st.warning("⚠️ Prédiction : Carrière ≤ 5 ans")
         
-        # Affichage des statistiques avancées calculées
-        st.subheader("Statistiques Avancées")
-        col_stats1, col_stats2 = st.columns(2)
+        # Visualisations des statistiques avancées
+        st.subheader("Visualisations des Statistiques Avancées")
         
+        # 1. Graphique radar des statistiques principales
+        categories = ['Scoring', 'Playmaking', 'Defense', 'Efficiency', 'Impact']
+        values = [pts/40*10, ast_tov/5*10, di/20*10, efficiency/2*10, game_impact/2*10]
+        
+        fig_radar = go.Figure()
+        fig_radar.add_trace(go.Scatterpolar(
+            r=values,
+            theta=categories,
+            fill='toself',
+            name='Stats du Joueur'
+        ))
+        fig_radar.update_layout(
+            polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
+            title="Profil du Joueur"
+        )
+        st.plotly_chart(fig_radar, use_container_width=True)
+        
+        # 2. Jauge pour l'efficacité globale
+        overall_impact = (efficiency * 0.3 + ast_tov * 0.2 + di/10 * 0.2 + game_impact * 0.3) / 2 * 100
+        fig_gauge = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = overall_impact,
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            title = {'text': "Impact Global"},
+            gauge = {'axis': {'range': [None, 100]},
+                    'steps': [
+                        {'range': [0, 33], 'color': "lightgray"},
+                        {'range': [33, 66], 'color': "gray"},
+                        {'range': [66, 100], 'color': "darkblue"}],
+                    'threshold': {
+                        'line': {'color': "red", 'width': 4},
+                        'thickness': 0.75,
+                        'value': overall_impact}}))
+        st.plotly_chart(fig_gauge, use_container_width=True)
+        
+        # 3. Graphique en barres des statistiques avancées
+        stats_df = pd.DataFrame({
+            'Statistique': ['Total Points', 'Impact Défensif', 'Ratio AST/TOV', 'Impact/Min'],
+            'Valeur': [total_points/2000*10, di/20*10, ast_tov/5*10, game_impact/2*10],
+            'Catégorie': ['Scoring', 'Defense', 'Playmaking', 'Overall']
+        })
+        
+        fig_bars = px.bar(stats_df, x='Statistique', y='Valeur', color='Catégorie',
+                         title="Comparaison des Statistiques Avancées (échelle 0-10)")
+        fig_bars.update_layout(yaxis_range=[0, 10])
+        st.plotly_chart(fig_bars, use_container_width=True)
+        
+        # Métriques simples
+        col_stats1, col_stats2, col_stats3 = st.columns(3)
         with col_stats1:
-            st.metric("Total Points sur la Saison", f"{total_points:.1f}")
-            st.metric("Efficacité Scoring", f"{efficiency:.2f} pts/min")
-            st.metric("Impact Défensif", f"{di:.1f}")
-            
+            st.metric("Points par Minute", f"{efficiency:.2f}")
         with col_stats2:
+            st.metric("Impact Défensif", f"{di:.1f}")
+        with col_stats3:
             st.metric("Ratio AST/TOV", f"{ast_tov:.2f}")
-            st.metric("% Rebonds Offensifs", f"{oreb_reb*100:.1f}%")
-            st.metric("Impact par Minute", f"{game_impact:.2f}")
 
 # Ajout d'informations supplémentaires
 st.sidebar.header("À propos")
@@ -97,9 +145,9 @@ Cette application utilise un modèle de Machine Learning entraîné sur des donn
 pour prédire la longévité de la carrière d'un joueur.
 """)
 
-st.sidebar.header("Comment utiliser")
+st.sidebar.header("Guide des Visualisations")
 st.sidebar.markdown("""
-1. Entrez les statistiques du joueur dans les champs fournis
-2. Cliquez sur 'Prédire'
-3. Examinez les résultats et les statistiques avancées calculées
+1. **Graphique Radar**: Montre le profil global du joueur sur 5 aspects clés
+2. **Jauge d'Impact**: Mesure l'impact global du joueur sur une échelle de 0 à 100
+3. **Graphique en Barres**: Compare les différentes statistiques avancées
 """)
