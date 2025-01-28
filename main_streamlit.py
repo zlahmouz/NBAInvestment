@@ -55,7 +55,7 @@ with col1:
 # Calculs et prédiction
 if submitted:
     with col2:
-        st.subheader("Résultats de l'Analyse")
+        st.subheader("📈 Analyse de l'Investissement")
         
         # Calcul des statistiques avancées
         total_points = gp * pts
@@ -81,7 +81,7 @@ if submitted:
             st.warning("⚠️ Prédiction : Carrière ≤ 5 ans")
         
         # Visualisations des statistiques avancées
-        st.subheader("📈 Analyse de l'Investissement")
+        st.subheader("Visualisations des statistiques avancées")
         
         # 1. Graphique radar des statistiques principales
         categories = ['Scoring', 'Playmaking', 'Defense', 'Efficiency', 'Impact']
