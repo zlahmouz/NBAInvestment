@@ -1,0 +1,13 @@
+# Ignorer le fichier de modèle sérialisé
+model_nba.pkl
+
+# Ignorer tous les fichiers .pkl dans le répertoire (optionnel)
+*.pkl
+
+# Ignorer les autres fichiers/dossiers communs (optionnel)
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/
+*.log
